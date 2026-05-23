@@ -8,7 +8,7 @@ namespace ReqnRollProjectArchitecture.Support
 {
     public static class LoggerHelper
     {
-        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod()?.DeclaringType ?? typeof(LoggerHelper));
 
         public static void InitLogger()
         {

@@ -41,12 +41,14 @@ namespace ReqnRollProjectArchitecture.Support
 
         public static void CreateFeature(string featureName)
         {
-            _feature.Value = _extent?.CreateTest<AventStack.ExtentReports.Gherkin.Model.Feature>(featureName);
+            _feature.Value = _extent?.CreateTest<AventStack.ExtentReports.Gherkin.Model.Feature>(featureName)
+                ?? throw new InvalidOperationException("ExtentReports is not initialized. Ensure InitReport() is called in [BeforeTestRun].");
         }
 
         public static void CreateScenario(string scenarioName)
         {
-            _scenario.Value = _feature.Value?.CreateNode<AventStack.ExtentReports.Gherkin.Model.Scenario>(scenarioName);
+            _scenario.Value = _feature.Value?.CreateNode<AventStack.ExtentReports.Gherkin.Model.Scenario>(scenarioName)
+                ?? throw new InvalidOperationException("Feature node exists but could not create Scenario node. Ensure CreateFeature() is called.");
         }
 
         public static void CreateStep(string stepType, string stepName, bool isPassed, string? errorMessage = null, string? screenshotPath = null)
