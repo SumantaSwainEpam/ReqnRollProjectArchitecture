@@ -113,6 +113,10 @@ The framework generates a rich, interactive reporting portal that provides:
 3. **📈 Execution Metrics** — Dashboard views showing pass/fail percentages and execution time.
 4. **🧵 Thread Isolation** — Cleanly separated reports even when running tests in parallel.
 
+### Report Preview
+
+![Extent Report Dashboard](docs/images/extent_report_preview.png)
+
 > [!TIP]
 > This framework is designed to be easily integrated with **ReportPortal.io** or **Allure Reports** for centralized enterprise-level test management.
 
@@ -211,6 +215,42 @@ BROWSER=firefox dotnet test
 HEADLESS=false dotnet test
 ```
 
+---
+
+## 🐳 Containerization (Docker)
+
+You can run the entire automation suite in a containerized environment without installing browsers or .NET locally.
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+### Using Docker Compose (Recommended)
+
+Build and run everything with a single command:
+
+```bash
+# Build and run with default settings
+docker-compose up --build
+
+# Run on a specific browser
+docker-compose run -e BROWSER=firefox automation-tests
+
+# Reports, logs, and screenshots will be mapped to TestResults/ folder locally
+```
+
+### Manual Docker Build & Run
+
+```bash
+# Build the image
+docker build -t reqnroll-automation .
+
+# Run the container
+docker run -v ${PWD}/TestResults:/app/TestResults reqnroll-automation
+```
+
+---
+
 ### Running via GitHub Actions
 
 Push to the `master` branch or manually trigger the workflow from the **Actions** tab. The pipeline will:
@@ -231,6 +271,10 @@ After execution, all outputs are organized under `TestResults/`:
 | HTML Report | `TestResults/Reports/TestReport_yyyyMMdd_HHmmss.html` |
 | Execution Log | `TestResults/Logs/ExecutionLog_yyyyMMdd_HHmmss.log` |
 | Screenshots | `TestResults/Screenshots/<StepName>_yyyyMMdd_HHmmss.png` |
+
+### Log Output Preview
+
+![Execution Log Output](docs/images/log_output_preview.png)
 
 ---
 
@@ -259,4 +303,4 @@ After execution, all outputs are organized under `TestResults/`:
 
 ---
 
-Happy Testing! 🧪✨
+Happy Automation! 🤖🚀✨

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  automation-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - BROWSER=chrome
+      - HEADLESS=true
+    volumes:
+      - ./TestResults:/app/TestResults
+    # To run specifically for a browser, use: docker-compose run -e BROWSER=firefox automation-tests
