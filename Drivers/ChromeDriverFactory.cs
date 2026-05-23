@@ -36,7 +36,7 @@ namespace ReqnRollProjectArchitecture.Drivers
         private ChromeOptions GetChromeOptions()
         {
             var options = new ChromeOptions();
-            //options.AddArgument("--headless=new");
+            options.AddArgument("--headless=new");
             options.AddArgument("--guest");
             options.AddArgument("--disable-popup-blocking");
             return options;
