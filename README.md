@@ -1,6 +1,6 @@
 # 🚀 ReqnRoll Enterprise Automation Framework
 
-An enterprise-grade, highly scalable, and thread-safe Selenium BDD framework built using **.NET 8** and **ReqnRoll** (the modern successor to SpecFlow).
+An enterprise-grade, highly scalable, and thread-safe **Selenium BDD** framework built using **.NET 8** and **ReqnRoll** (the modern successor to SpecFlow). Includes CI/CD integration with **GitHub Actions** for cross-browser parallel execution.
 
 ---
 
@@ -8,22 +8,22 @@ An enterprise-grade, highly scalable, and thread-safe Selenium BDD framework bui
 
 This framework follows a strict **3-Layer Architecture** to ensure clean separation of concerns, high maintainability, and easy scalability.
 
-### 1. **Test Layer (BDD)**
+### 1. Test Layer (BDD)
 
-- **Features**: Gherkin-based `.feature` files describing business behaviors.
-- **Step Definitions**: C# classes that map Gherkin steps to code logic.
-- **Hooks**: Global lifecycle management (Before/After scenarios, specialized reporting/logging).
+- **Features** — Gherkin-based `.feature` files describing business behaviors.
+- **Step Definitions** — C# classes that map Gherkin steps to code logic.
+- **Hooks** — Global lifecycle management (Before/After scenarios, reporting, logging).
 
-### 2. **Page Object Model (POM) Layer**
+### 2. Page Object Model (POM) Layer
 
-- **Pages**: Encapsulates web elements and business actions for specific application pages.
-- **BasePage**: Provides a shared driver instance and shared helper methods to all page objects.
+- **Pages** — Encapsulates web elements and business actions for specific application pages.
+- **BasePage** — Provides a shared driver instance and helper methods to all page objects.
 
-### 3. **Core Support Layer**
+### 3. Core Support Layer
 
-- **Drivers**: A Factory pattern implementation for cross-browser driver management (Chrome, Firefox, Edge).
-- **Helpers**: Common Selenium utilities (waits, clicks, scrolls, screenshots).
-- **Credentials/Config**: Strongly-typed configuration management using `Microsoft.Extensions.Configuration`.
+- **Drivers** — Factory pattern for cross-browser driver management (Chrome, Firefox, Edge).
+- **Helpers** — Common Selenium utilities (waits, clicks, scrolls, screenshots).
+- **Support** — Strongly-typed configuration, Extent Report manager, and log4net logger.
 
 ---
 
@@ -33,7 +33,7 @@ This framework follows a strict **3-Layer Architecture** to ensure clean separat
 
 ```mermaid
 graph TD
-    A[Feature Files] --> B[Step Definitions]
+    A["Feature Files (.feature)"] --> B[Step Definitions]
     B --> C[Hook Context]
     C --> D[Extent Report Manager]
     C --> E[Logger Helper]
@@ -41,32 +41,66 @@ graph TD
     F --> G[Base Page]
     G --> H[Selenium Helper]
     H --> I[WebDriver Factory]
-    I --> J[Browser Drivers]
+    I --> J["Chrome | Firefox | Edge"]
 ```
 
 ### Execution Workflow
 
 ```mermaid
 sequenceDiagram
-    participant B as BDD Script
+    participant F as Feature File
     participant H as Hooks
     participant P as Page Object
     participant D as Driver Factory
     participant R as Extent Report
+    participant L as Logger
 
-    H->>D: Initialize WebDriver
-    H->>R: Start Test Report
-    B->>P: Execute User Actions
-    P->>H: Action Success/Failure
-    alt Failure
-        H->>R: Capture Screenshot
-        H->>R: Log Error
-    else Success
-        H->>R: Pass Step
+    H->>L: Initialize Logger
+    H->>R: Initialize Report
+    H->>D: Create WebDriver
+    F->>P: Execute Step Actions
+    P->>H: Step Result
+    alt Step Failed
+        H->>H: Capture Screenshot
+        H->>R: Log Failed Step + Attach Screenshot
+        H->>L: Log Error Details
+    else Step Passed
+        H->>R: Log Passed Step
+        H->>L: Log Step Info
     end
     H->>D: Quit Browser
     H->>R: Flush Report
+    H->>L: Log Execution Complete
 ```
+
+---
+
+## 🔄 CI/CD Pipeline (GitHub Actions)
+
+The framework includes a production-ready GitHub Actions pipeline that runs tests across **3 browsers in parallel**.
+
+### Pipeline Architecture
+
+```mermaid
+graph LR
+    A[Push to Master] --> B[Build & Restore]
+    B --> C1["🌐 Chrome"]
+    B --> C2["🦊 Firefox"]
+    B --> C3["🔷 Edge"]
+    C1 --> D[Upload Artifacts]
+    C2 --> D
+    C3 --> D
+    D --> E[Combined Report]
+```
+
+### Pipeline Features
+
+- **Matrix Strategy** — Runs Chrome, Firefox, and Edge in parallel jobs.
+- **Headless Mode** — Automatically enabled via `HEADLESS=true` environment variable.
+- **Browser Setup** — Uses `browser-actions/setup-chrome`, `setup-firefox`, and `setup-edge` actions.
+- **NuGet Caching** — Speeds up builds by caching restored packages.
+- **Test Summary** — Parses TRX files and displays pass/fail counts in the GitHub Actions summary.
+- **Combined Report** — Merges results from all browsers into a single HTML report using ReportGenerator.
 
 ---
 
@@ -74,10 +108,10 @@ sequenceDiagram
 
 The framework generates a rich, interactive reporting portal that provides:
 
-1.  **🔍 Step-by-Step Traceability**: Full visibility into every Gherkin step executed.
-2.  **📸 Visual Evidence**: Automatic high-resolution screenshots attached to failed steps.
-3.  **📈 Execution Metrics**: Dashboard views showing pass/fail percentages and execution time.
-4.  **🧵 Thread Isolation**: Cleanly separated reports even when running dozens of tests in parallel.
+1. **🔍 Step-by-Step Traceability** — Full visibility into every Gherkin step executed.
+2. **📸 Visual Evidence** — Automatic screenshots attached to failed steps.
+3. **📈 Execution Metrics** — Dashboard views showing pass/fail percentages and execution time.
+4. **🧵 Thread Isolation** — Cleanly separated reports even when running tests in parallel.
 
 > [!TIP]
 > This framework is designed to be easily integrated with **ReportPortal.io** or **Allure Reports** for centralized enterprise-level test management.
@@ -86,12 +120,14 @@ The framework generates a rich, interactive reporting portal that provides:
 
 ## ✨ Key Features
 
-- **🌐 Cross-Browser Support**: Easily switch between Chrome, Firefox, and Edge via `AppConfig.json`.
-- **📊 Extent Reports**: Beautiful, interactive HTML reports with built-in screenshot capture for failed steps.
-- **📜 log4net Logging**: Detailed execution logs for deep traceability, organized by timestamp.
-- **🧵 Thread-Safe Execution**: Engineered for parallel test runs using `ThreadLocal` storage for reporting and context.
-- **⚙️ Strongly-Typed Configuration**: No more magic strings! Configuration is mapped directly to C# classes for type safety and IntelliSense.
-- **💉 Dependency Injection**: Uses `BoDi` (built-in to ReqnRoll) for clean object management across hooks and step definitions.
+- **🌐 Cross-Browser Support** — Chrome, Firefox, and Edge via `AppConfig.json` or `BROWSER` env var.
+- **📊 Extent Reports** — Interactive HTML reports with screenshot capture on failure.
+- **📜 log4net Logging** — Cross-platform console and file logging with timestamped log files.
+- **🧵 Thread-Safe Execution** — `ThreadLocal` storage for parallel test reporting.
+- **⚙️ Strongly-Typed Config** — Configuration mapped to C# classes (`ConfigSettings.cs`) for type safety.
+- **💉 Dependency Injection** — Uses `BoDi` (built-in to ReqnRoll) for clean object management.
+- **🔄 CI/CD Ready** — GitHub Actions workflow with matrix strategy and combined reporting.
+- **🖥️ Headless Mode** — Configurable via `AppConfig.json` or `HEADLESS` env var for CI environments.
 
 ---
 
@@ -99,15 +135,35 @@ The framework generates a rich, interactive reporting portal that provides:
 
 ```text
 ReqnRollProjectArchitecture/
-├── Credentials/             # Config files (AppConfig.json, Log4Net.config)
-├── Drivers/                 # WebDriver Factory and Browser implementations
-├── Features/                # BDD Feature files
-├── Helpers/                 # Selenium wrapper and utility methods
-├── Hook/                    # ReqnRoll Hooks (Reporting & Logging setup)
+├── .github/workflows/       # GitHub Actions CI/CD pipeline
+├── Credentials/             # AppConfig.json, Log4Net.config
+│   ├── AppConfig.json       # Test settings, browser config, credentials
+│   ├── CredentialsManager.cs # Strongly-typed config reader
+│   └── Log4Net.config       # Cross-platform logging configuration
+├── Drivers/                 # WebDriver Factory pattern
+│   ├── IDriverFactory.cs    # Driver factory interface
+│   ├── ChromeDriverFactory.cs
+│   ├── FirefoxDriverFactory.cs
+│   ├── EdgeDriverFactory.cs
+│   └── WebDriverFactory.cs  # Factory resolver
+├── Features/                # BDD Feature files (.feature)
+├── Helpers/                 # Selenium wrapper utilities
+│   └── SeleniumHelper.cs    # Waits, clicks, screenshots, etc.
+├── Hook/                    # ReqnRoll lifecycle hooks
+│   └── Hook.cs              # Reporting, logging, screenshot on failure
 ├── Pages/                   # Page Object Model classes
+│   ├── BasePage.cs          # Abstract base page
+│   ├── LogInPage.cs
+│   └── LogOutPage.cs
 ├── StepDefinitions/         # Scenario step implementations
-├── Support/                 # Reporting, Logging, and Config models
-└── TestResults/             # Generated Reports, Logs, and Screenshots
+├── Support/                 # Framework support classes
+│   ├── ConfigSettings.cs    # Strongly-typed config model
+│   ├── ExtentReportManager.cs # Thread-safe Extent Reports
+│   └── LoggerHelper.cs      # log4net wrapper
+└── TestResults/             # Generated at runtime
+    ├── Reports/             # HTML Extent Reports
+    ├── Logs/                # Timestamped log files
+    └── Screenshots/         # Failure screenshots
 ```
 
 ---
@@ -118,28 +174,78 @@ ReqnRollProjectArchitecture/
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - IDE: Visual Studio 2022 or VS Code
+- Browser: Chrome, Firefox, or Edge installed locally
 
 ### Configuration
 
-Update the `Credentials/AppConfig.json` file with your environment details:
+Update `Credentials/AppConfig.json` with your environment details:
 
 ```json
 {
   "TestSettings": {
     "BaseUrl": "https://www.saucedemo.com/",
+    "Browsers": ["chrome", "firefox", "edge"],
     "DefaultBrowser": "chrome",
-    "ExplicitWait": 15
+    "Headless": true,
+    "ExplicitWait": 15,
+    "Environment": "QA",
+    "Credentials": {
+      "Username": "standard_user",
+      "Password": "secret_sauce"
+    },
+    "ExpectedHomePageTitle": "Swag Labs"
   }
 }
 ```
 
-### Running Tests
-
-Open your terminal in the project root and run:
+### Running Tests Locally
 
 ```bash
+# Run all tests with default browser
 dotnet test
+
+# Run with a specific browser
+BROWSER=firefox dotnet test
+
+# Run in headed mode (see the browser)
+HEADLESS=false dotnet test
 ```
+
+### Running via GitHub Actions
+
+Push to the `master` branch or manually trigger the workflow from the **Actions** tab. The pipeline will:
+
+1. Build the project
+2. Run tests on Chrome, Firefox, and Edge in parallel
+3. Upload reports, logs, and screenshots as artifacts
+4. Generate a combined HTML report
+
+---
+
+## 📈 Viewing Reports
+
+After execution, all outputs are organized under `TestResults/`:
+
+| Artifact | Location |
+|---|---|
+| HTML Report | `TestResults/Reports/TestReport_yyyyMMdd_HHmmss.html` |
+| Execution Log | `TestResults/Logs/ExecutionLog_yyyyMMdd_HHmmss.log` |
+| Screenshots | `TestResults/Screenshots/<StepName>_yyyyMMdd_HHmmss.png` |
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|---|---|
+| Language | C# (.NET 8) |
+| BDD Framework | ReqnRoll |
+| Automation | Selenium WebDriver |
+| Reporting | Extent Reports 5.x |
+| Logging | log4net (cross-platform) |
+| Assertions | FluentAssertions, NUnit |
+| CI/CD | GitHub Actions |
+| Config | Microsoft.Extensions.Configuration + Binder |
 
 ---
 
@@ -147,10 +253,10 @@ dotnet test
 
 **Sumanta Swain**
 
-- **Role**: AI Automation Engineer
-- **Design**: Enterprise BDD Architecture
-- **Contribution**: Framework development, reporting integration, and parallel execution logic.
+- **Role** — AI Automation Engineer
+- **Design** — Enterprise BDD Architecture
+- **Contribution** — Framework development, CI/CD pipeline, reporting, and parallel execution logic.
 
 ---
 
-*Happy Testing!* 🧪✨
+Happy Testing! 🧪✨
