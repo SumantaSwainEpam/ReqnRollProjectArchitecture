@@ -10,6 +10,7 @@ An enterprise-grade, highly scalable, and thread-safe **Selenium BDD** framework
 ---
 
 ## 📖 Table of Contents
+
 - [🏗️ Framework Architecture](#️-framework-architecture)
 - [🖼️ Framework Visualization](#️-framework-visualization)
 - [🔄 CI/CD Pipeline (GitHub Actions)](#-cicd-pipeline-github-actions)
@@ -27,7 +28,25 @@ An enterprise-grade, highly scalable, and thread-safe **Selenium BDD** framework
 
 This framework follows a strict **3-Layer Architecture** to ensure clean separation of concerns, high maintainability, and easy scalability.
 
+### 1. **Test Layer (BDD)**
+
+- **Features**: Gherkin-based `.feature` files describing business behaviors.
+- **Step Definitions**: C# classes that map Gherkin steps to code logic.
+- **Hooks**: Global lifecycle management (Before/After scenarios, specialized reporting/logging).
+
+### 2. **Page Object Model (POM) Layer**
+
+- **Pages**: Encapsulates web elements and business actions for specific application pages.
+- **BasePage**: Provides a shared driver instance and shared helper methods to all page objects.
+
+### 3. **Core Support Layer**
+
+- **Drivers**: A Factory pattern implementation for cross-browser driver management (Chrome, Firefox, Edge).
+- **Helpers**: Common Selenium utilities (waits, clicks, scrolls, screenshots).
+- **Support**: Strongly-typed configuration, thread-safe Extent Reports, and cross-platform logging.
+
 ### 🏛️ Design Patterns
+
 | Pattern | Implementation |
 |---|---|
 | **Page Object Model (POM)** | Decouples element locators from test logic for stable UI automation. |
