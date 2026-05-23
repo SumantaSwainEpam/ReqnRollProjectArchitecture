@@ -40,6 +40,8 @@ namespace ReqnRollProjectArchitecture.Drivers
             {
                 options.AddArgument("--headless=new");
             }
+            options.AddArgument("--no-sandbox");
+            options.AddArgument("--disable-dev-shm-usage");
             options.AddArgument("--guest");
             options.AddArgument("--disable-popup-blocking");
             return options;
