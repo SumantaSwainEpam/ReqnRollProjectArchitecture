@@ -17,6 +17,7 @@ jobs:
 
     env:
       BROWSER: ${{ matrix.browser }}
+      HEADLESS: 'true'
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_NOLOGO: true
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -38,6 +39,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      - name: 🌐 Setup Chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: 'stable'
+
+      - name: 🦊 Setup Firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: 'latest'
+
       - name: 📦 Restore dependencies
         run: dotnet restore
 
@@ -47,7 +60,6 @@ jobs:
       - name: 🧪 Run Reqnroll Tests on ${{ matrix.browser }}
         run: |
           echo "🌐 Running tests on browser: $BROWSER"
-          # Using xvfb-run for non-headless browsers if needed, though headless is preferred for CI
           dotnet test --no-build --configuration Release \
             --filter "FullyQualifiedName~ReqnRollProjectArchitecture.Features" \
             --logger "trx;LogFileName=test_results_${{ matrix.browser }}.trx" \
