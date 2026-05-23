@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         dotnet-version: [ '8.0' ]
-        browser: [ chrome, firefox ] # Removed edge for now as it requires extra setup on Linux
+        browser: [ chrome, firefox, edge ]
 
     env:
       BROWSER: ${{ matrix.browser }}
@@ -50,6 +50,12 @@ jobs:
         uses: browser-actions/setup-firefox@v1
         with:
           firefox-version: 'latest'
+
+      - name: 🔷 Setup Edge
+        if: matrix.browser == 'edge'
+        uses: browser-actions/setup-edge@v1
+        with:
+          edge-version: 'stable'
 
       - name: 📦 Restore dependencies
         run: dotnet restore
