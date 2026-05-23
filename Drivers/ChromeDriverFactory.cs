@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,7 +36,10 @@ namespace ReqnRollProjectArchitecture.Drivers
         private ChromeOptions GetChromeOptions()
         {
             var options = new ChromeOptions();
-            options.AddArgument("--headless=new");
+            if (Credentials.CredentialsManager.IsHeadless())
+            {
+                options.AddArgument("--headless=new");
+            }
             options.AddArgument("--guest");
             options.AddArgument("--disable-popup-blocking");
             return options;

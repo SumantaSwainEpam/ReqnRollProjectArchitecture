@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Firefox;
 
 
@@ -32,7 +32,10 @@ namespace ReqnRollProjectArchitecture.Drivers
         private FirefoxOptions GetFirefoxOptions()
         {
             var options = new FirefoxOptions();
-            options.AddArgument("--headless=new");
+            if (Credentials.CredentialsManager.IsHeadless())
+            {
+                options.AddArgument("--headless");
+            }
             options.AddArgument("--guest");
             options.AddArgument("--disable-popup-blocking");
             return options;

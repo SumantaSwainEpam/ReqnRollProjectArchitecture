@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
 using ReqnRollProjectArchitecture.Drivers;
 
@@ -28,7 +28,10 @@ namespace ReqnRollProjectArchitecture.Drivers
         private EdgeOptions GetEdgeOptions()
         {
             var options = new EdgeOptions();
-            options.AddArgument("--headless=new");
+            if (Credentials.CredentialsManager.IsHeadless())
+            {
+                options.AddArgument("--headless=new");
+            }
             options.AddArgument("--guest");
             options.AddArgument("--disable-popup-blocking");
             return options;

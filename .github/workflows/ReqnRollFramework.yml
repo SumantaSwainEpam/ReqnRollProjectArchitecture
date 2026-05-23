@@ -1,7 +1,9 @@
-name: Reqnroll Test Project Sause Demo App
+name: Reqnroll Test Project Sauce Demo App
 
 on:
   push:
+    branches: [ master ]
+  pull_request:
     branches: [ master ]
   workflow_dispatch:
 
@@ -11,13 +13,10 @@ jobs:
     strategy:
       matrix:
         dotnet-version: [ '8.0' ]
-        browser: [ chrome, firefox, edge ]
+        browser: [ chrome, firefox ] # Removed edge for now as it requires extra setup on Linux
 
     env:
       BROWSER: ${{ matrix.browser }}
-      REPORT_DIR: Reports
-      LOG_DIR: Logs
-      TEST_RESULTS_DIR: TestResults
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_NOLOGO: true
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -35,7 +34,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -48,60 +47,43 @@ jobs:
       - name: 🧪 Run Reqnroll Tests on ${{ matrix.browser }}
         run: |
           echo "🌐 Running tests on browser: $BROWSER"
+          # Using xvfb-run for non-headless browsers if needed, though headless is preferred for CI
           dotnet test --no-build --configuration Release \
-            --filter FullyQualifiedName~ReqnRollProjectArchitecture\Features
+            --filter "FullyQualifiedName~ReqnRollProjectArchitecture.Features" \
             --logger "trx;LogFileName=test_results_${{ matrix.browser }}.trx" \
-            --results-directory ${{ env.TEST_RESULTS_DIR }} \
+            --results-directory TestResults \
             --verbosity normal
 
       - name: 📤 Upload Reports & Logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Reports-and-Logs-${{ matrix.browser }}
+          name: Results-${{ matrix.browser }}
           path: |
-            **/${{ env.REPORT_DIR }}/
-            **/${{ env.LOG_DIR }}/
-            **/${{ env.TEST_RESULTS_DIR }}/
+            TestResults/
+            **/bin/Release/net8.0/TestResults/
             **/*.trx
 
       - name: Generate Test Summary
         if: always()
         run: |
-          echo "### 🧪 Test Summary for Browser: $BROWSER" >> $GITHUB_STEP_SUMMARY
-
-          TRX_FILE=$(find ${{ env.TEST_RESULTS_DIR }} -name "test_results_${{ matrix.browser }}.trx" | head -1)
+          echo "### 🧪 Test Summary for Browser: ${{ matrix.browser }}" >> $GITHUB_STEP_SUMMARY
+          TRX_FILE=$(find TestResults -name "test_results_${{ matrix.browser }}.trx" | head -1)
           if [ -f "$TRX_FILE" ]; then
             PASSED=$(grep -o 'outcome="Passed"' "$TRX_FILE" | wc -l)
             FAILED=$(grep -o 'outcome="Failed"' "$TRX_FILE" | wc -l)
-            SKIPPED=$(grep -o 'outcome="NotExecuted"' "$TRX_FILE" | wc -l)
-            TOTAL=$((PASSED + FAILED + SKIPPED))
-
+            TOTAL=$(grep -c 'testCaseName' "$TRX_FILE" || echo "0")
             echo "- ✅ Passed: $PASSED" >> $GITHUB_STEP_SUMMARY
             echo "- ❌ Failed: $FAILED" >> $GITHUB_STEP_SUMMARY
-            echo "- ⚠️ Skipped: $SKIPPED" >> $GITHUB_STEP_SUMMARY
             echo "- 🧩 Total: $TOTAL" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- ⚠️ No TRX file found for parsing results." >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️ No TRX file found." >> $GITHUB_STEP_SUMMARY
           fi
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- 📂 Logs and HTML reports are available in uploaded artifacts." >> $GITHUB_STEP_SUMMARY
-
-      
-
-      - name: 🧹 Cleanup workspace
-        if: always()
-        run: |
-          rm -rf ${{ env.TEST_RESULTS_DIR }} || true
-          rm -rf ${{ env.REPORT_DIR }} || true
-          rm -rf ${{ env.LOG_DIR }} || true
-
 
   combine-reports:
     runs-on: ubuntu-latest
     needs: [build-and-test]
-
+    if: always()
     steps:
       - name: 🧾 Checkout code
         uses: actions/checkout@v4
@@ -116,24 +98,19 @@ jobs:
         with:
           path: ./artifacts
 
-      # ✅ Install ReportGenerator using manifest (works reliably)
-      - name: 📊 Install ReportGenerator locally
+      - name: 📊 Install ReportGenerator
         run: |
-          dotnet new tool-manifest
-          dotnet tool install dotnet-reportgenerator-globaltool
-          echo "$PWD/.config/dotnet/tools" >> $GITHUB_PATH
+          dotnet tool install -g dotnet-reportgenerator-globaltool
 
-      # ✅ Use dotnet tool run to ensure it finds the local tool
-      - name: 📈 Generate Combined HTML Report
+      - name: 📈 Generate Combined Report
         run: |
-          mkdir -p CombinedReport
-          dotnet tool run reportgenerator \
+          reportgenerator \
             "-reports:./artifacts/**/*.trx" \
             "-targetdir:./CombinedReport" \
             "-reporttypes:HtmlInline_AzurePipelines;TextSummary"
 
-      - name: 📤 Upload Combined HTML Report
+      - name: 📤 Upload Combined Report
         uses: actions/upload-artifact@v4
         with:
-          name: Combined-HTML-Report
+          name: Combined-Test-Report
           path: ./CombinedReport

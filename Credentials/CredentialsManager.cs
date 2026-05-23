@@ -40,7 +40,21 @@ namespace ReqnRollProjectArchitecture.Credentials
 
         public static List<string> GetBrowsers() => _settings.TestSettings.Browsers;
 
-        public static string GetDefaultBrowser() => _settings.TestSettings.DefaultBrowser;
+        public static string GetDefaultBrowser() 
+        {
+            var envBrowser = Environment.GetEnvironmentVariable("BROWSER");
+            return !string.IsNullOrEmpty(envBrowser) ? envBrowser : _settings.TestSettings.DefaultBrowser;
+        }
+
+        public static bool IsHeadless()
+        {
+            var envHeadless = Environment.GetEnvironmentVariable("HEADLESS");
+            if (!string.IsNullOrEmpty(envHeadless) && bool.TryParse(envHeadless, out bool result))
+            {
+                return result;
+            }
+            return _settings.TestSettings.Headless;
+        }
 
         public static string GetBrowserByIndex(int index)
         {
